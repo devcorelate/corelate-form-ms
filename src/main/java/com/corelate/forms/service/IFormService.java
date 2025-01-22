@@ -1,5 +1,6 @@
 package com.corelate.forms.service;
 import com.corelate.forms.dto.FormDto;
+import com.corelate.forms.dto.FormSelectionDto;
 
 import java.util.List;
 
@@ -36,5 +37,17 @@ public interface IFormService {
     boolean deleteForm(String FormId);
 
 
+    /**
+     * @param formId
+     * @return
+     */
     boolean updateCommunicationStatus(String formId);
+
+    /**
+     * @param formId
+     * @return
+     */
+    List<Object> fetchListByForm(String formId);
+
+    List<FormSelectionDto> fetchSelections();
 }

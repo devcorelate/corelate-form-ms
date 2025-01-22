@@ -1,6 +1,6 @@
 package com.corelate.forms.repository;
 
-import com.corelate.forms.entity.Form;
+import com.corelate.forms.entity.FormSchema;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Repository;
@@ -10,17 +10,21 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface FormRepository extends JpaRepository<Form,String> {
+public interface FormSchemaRepository extends JpaRepository<FormSchema,String> {
 
     /**
-     * @param formId
      * @return
      */
-    Optional<Form> findByFormId(String formId);
+    Optional<FormSchema> findBySchemaId(String schemaId);
+
+    /**
+     * @return
+     */
+    Optional<FormSchema> findByFormId(String formId);
 
     @Transactional
     @Modifying
-    void deleteByFormId(String formId);
+    void deleteBySchemaId(String schemaId);
 
-    List<Form> findByCreatedBy(String createBy);
+    List<FormSchema> findAllByFormId(String formId);
 }

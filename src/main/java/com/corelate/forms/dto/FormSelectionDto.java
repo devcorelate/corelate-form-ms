@@ -2,10 +2,8 @@ package com.corelate.forms.dto;
 
 import lombok.Data;
 
-import java.util.List;
-
 @Data
-public class FormDto {
+public class FormSelectionDto {
 
     private String formId;
 
@@ -13,7 +11,4 @@ public class FormDto {
 
     private String formDescription;
 
-    private FormSchemaDto formSchemaDto;
-
 }
-// SAMPLE DTO
