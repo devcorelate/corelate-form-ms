@@ -8,9 +8,9 @@ public interface IFormService {
 
     /**
      * @param formDto - FormDto Object
-     * @return Form Details
+     * @return FormDto
      */
-    void createForm(FormDto formDto);
+    FormDto createForm(FormDto formDto);
 
     /**
      *     @param formId - Input Form ID
@@ -36,7 +36,7 @@ public interface IFormService {
      */
     boolean deleteForm(String FormId);
 
-
+    boolean deleteFormSchemas(String FormId);
     /**
      * @param formId
      * @return

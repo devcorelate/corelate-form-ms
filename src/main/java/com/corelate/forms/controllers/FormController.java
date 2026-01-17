@@ -101,13 +101,13 @@ public class FormController {
     }
     )
     @PostMapping("/create")
-    public ResponseEntity<ResponseDto> createForm(@Valid @RequestBody FormDto formDto) {
+    public ResponseEntity<FormDto> createForm(@Valid @RequestBody FormDto formDto) {
         logger.debug("createForm method start");
-        iFormService.createForm(formDto);
+        FormDto newFormDto = iFormService.createForm(formDto);
         logger.debug("createForm method end");
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(new ResponseDto(AppConstants.STATUS_201, AppConstants.MESSAGE_201));
+                .body(newFormDto);
     }
 
 
@@ -214,9 +214,9 @@ public class FormController {
         return "Table " + tableSchemaDto.getTableName() + " created successfully.";
     }
 
-//    @DeleteMapping("/delete/{tableName}")
-//    public String deleteTable(@PathVariable String tableName) {
-//        dynamicTableService.deleteTableById(tableName);
-//        return "Table " + tableName + " deleted successfully.";
-//    }
+    @DeleteMapping("/delete/schema/{formId}")
+    public String deleteFormSchemas(@PathVariable String formId) {
+        iFormService.deleteFormSchemas(formId);
+        return "Schemas for " + formId + " deleted successfully.";
+    }
 }

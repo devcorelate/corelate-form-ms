@@ -20,11 +20,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Service
 @AllArgsConstructor
@@ -41,12 +43,31 @@ public class FormServiceImpl implements IFormService {
     private JwtUtil jwtUtil;
 
     @Override
-    public void createForm(FormDto formDto) {
+    public FormDto createForm(FormDto formDto) {
+        formDto.setFormId(generateRandomId());
         Form form = FormMapper.mapToForm(formDto, new Form());
 
         form.setCreatedAt(LocalDateTime.now());
-        form.setCreatedBy("Admin");
+        form.setCreatedBy(formDto.getCreatedBy());
+        form.setCreatedByEmail(formDto.getCreatedByEmail());
         formRepository.save(form);
+        FormDto updatedFormDto = FormMapper.mapToFormDto(form, new FormDto());
+
+        return updatedFormDto;
+    }
+
+    public static String generateRandomId() {
+        String characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder id = new StringBuilder();
+        Random random = new Random();
+
+        // Generate 8 random characters
+        for (int i = 0; i < 8; i++) {
+            int index = random.nextInt(characters.length());
+            id.append(characters.charAt(index));
+        }
+
+        return id.toString();
     }
 
     @Override
@@ -67,14 +88,14 @@ public class FormServiceImpl implements IFormService {
     @Override
     public List<FormDto> fetchAllForm() {
         List<FormDto> formDtos = new ArrayList<>();
-        List<Form> forms = formRepository.findAll();
+        List<Form> forms = formRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
 
         for (Form form : forms) {
 
             FormSchema formSchema = formSchemaRepository.findByFormId(form.getFormId()).orElse(null);
 
 //                FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository);
-                formDtos.add(FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository));
+            formDtos.add(FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository));
 
 
         }
@@ -84,18 +105,39 @@ public class FormServiceImpl implements IFormService {
 
     @Override
     public boolean updateForm(FormDto formDto) {
-        Form form = formRepository.findByFormId(formDto.getFormId()).orElseThrow(
-                ()-> new ResourceNotFoundException("Form", "Id", formDto.getFormId())
-        );
+        Form form = formRepository.findByFormId(formDto.getFormId())
+                .orElseThrow(() -> new ResourceNotFoundException("Form", "Id", formDto.getFormId()));
 
-        FormSchema formSchema = formSchemaRepository.findBySchemaId(formDto.getFormSchemaDto().getId()).orElseGet(FormSchema::new);
+        // 🔥 Remove existing schemas linked to this formId (avoid duplicates)
+        List<FormSchema> existingSchemas = formSchemaRepository.findAllByFormId(formDto.getFormId());
+        if (!existingSchemas.isEmpty()) {
+            formSchemaRepository.deleteAll(existingSchemas);
+        }
+
+        // Prepare new schema
+        FormSchema formSchema = formSchemaRepository.findBySchemaId(formDto.getFormSchemaDto().getId())
+                .orElseGet(FormSchema::new);
 
         FormSchemaMapper.mapToFormSchema(formDto, formSchema, schemaComponentRepository);
         formSchemaRepository.save(formSchema);
+
+        // Update form metadata
         FormMapper.mapToForm(formDto, form);
         form.setUpdatedAt(LocalDateTime.now());
         form.setUpdatedBy("Admin");
         formRepository.save(form);
+
+        return true;
+    }
+
+    @Override
+    public boolean deleteFormSchemas(String FormId) {
+
+        List<FormSchema> existingSchemas = formSchemaRepository.findAllByFormId(FormId);
+        if (!existingSchemas.isEmpty()) {
+            formSchemaRepository.deleteAll(existingSchemas);
+        }
+
         return true;
     }
 

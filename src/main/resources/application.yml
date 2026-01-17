@@ -1,5 +1,5 @@
 server:
-  port: 8082
+  port: 8083
 spring:
   application:
     name: "forms"
@@ -94,7 +94,9 @@ logging:
   level:
     com:
       corelate:
-        orchestrator: DEBUG
+        forms: DEBUG
+    org.apache.kafka: OFF
+    org.springframework.kafka: OFF
   pattern:
     level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 

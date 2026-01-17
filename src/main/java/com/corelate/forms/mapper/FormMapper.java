@@ -10,6 +10,8 @@ public class FormMapper {
     public static Form mapToForm(FormDto formDto, Form form) {
         form.setFormName(formDto.getFormName());
         form.setFormDescription(formDto.getFormDescription());
+        form.setCreatedBy(formDto.getCreatedBy());
+        form.setCreatedByEmail(formDto.getCreatedByEmail());
         form.setFormId(formDto.getFormId());
         return form;
     }
@@ -18,7 +20,8 @@ public class FormMapper {
         formDto.setFormName(form.getFormName());
         formDto.setFormDescription(form.getFormDescription());
         formDto.setFormId(form.getFormId());
-
+        formDto.setCreatedDate(form.getCreatedAt());
+        formDto.setUpdatedDate(form.getUpdatedAt());
         return formDto;
     }
 

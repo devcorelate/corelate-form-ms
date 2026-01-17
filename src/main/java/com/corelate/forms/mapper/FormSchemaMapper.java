@@ -49,6 +49,10 @@ public class FormSchemaMapper {
         formDto.setFormId(form.getFormId());
         formDto.setFormDescription(form.getFormDescription());
         formDto.setFormName(form.getFormName());
+        formDto.setCreatedBy(form.getCreatedBy());
+        formDto.setCreatedByEmail(form.getCreatedByEmail());
+        formDto.setCreatedDate(form.getCreatedAt());
+        formDto.setUpdatedDate(form.getUpdatedAt());
         FormSchemaDto formSchemaDto = new FormSchemaDto();
         if(formSchema != null)  {
             formSchemaDto.setId(formSchema.getSchemaId());
@@ -80,6 +84,5 @@ public class FormSchemaMapper {
         }
         return formDto;
     }
-
 
 }
