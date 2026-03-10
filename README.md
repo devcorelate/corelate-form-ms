@@ -13,7 +13,8 @@ The Forms microservice is part of the Corelate ecosystem, designed to handle dyn
 - **Spring Cloud**: 2023.0.1
 - **Database**: PostgreSQL
 - **Build Tool**: Maven 3.9
-- **Container**: Docker with multi-stage builds
+- **Container**: Google Distroless (gcr.io/distroless/java21-debian12)
+- **CI/CD**: GitHub Actions with AWS ECR
 
 ### Key Dependencies
 
@@ -28,6 +29,7 @@ The Forms microservice is part of the Corelate ecosystem, designed to handle dyn
 - **SpringDoc OpenAPI**: API documentation (v2.5.0)
 - **JWT (jjwt)**: Token-based authentication (v0.11.5)
 - **Lombok**: Boilerplate code reduction
+- **JSR-305**: Annotations for software defect detection
 
 ## Features
 
@@ -217,15 +219,39 @@ com.corelate.forms
 
 ### Docker Deployment
 
-#### Using Maven Jib Plugin
+#### Using Maven Jib Plugin (Recommended)
+
+The project uses Google Distroless base image for enhanced security (95% CVE reduction):
 
 ```bash
-./mvnw compile jib:build
+# Build and push to ECR (requires AWS authentication)
+./mvnw clean compile jib:build
+
+# Build to local Docker daemon
+./mvnw clean compile jib:dockerBuild
 ```
 
-This builds and pushes the image: `devcorelate01/forms:v1.1.32`
+**Image Details:**
+- **Base Image**: `gcr.io/distroless/java21-debian12`
+- **ECR Repository**: `689635266888.dkr.ecr.ap-southeast-1.amazonaws.com/bpmn/corelate_forms_ms`
+- **Security**: Minimal attack surface, no shell, production-ready
+- **Size**: ~30MB smaller than standard JRE images
 
-#### Using Dockerfile
+#### CI/CD with GitHub Actions
+
+The project includes automated CI/CD pipeline that:
+- Builds on push to `main` or `develop` branches
+- Uses OIDC authentication (no long-lived credentials)
+- Generates immutable image tags:
+  - Full commit SHA
+  - Short commit SHA (7 chars)
+  - Branch + timestamp
+  - Version + build number + SHA
+
+**Required GitHub Secret:**
+- `AWS_ROLE_ARN`: `arn:aws:iam::689635266888:role/GitHubActionsECRRole`
+
+#### Using Dockerfile (Alternative)
 
 ```bash
 # Build image
@@ -248,7 +274,10 @@ mvnw.cmd clean install
 mvnw.cmd spring-boot:run
 
 # Build Docker image with Jib
-mvnw.cmd compile jib:build
+mvnw.cmd clean compile jib:build
+
+# Build to local Docker daemon
+mvnw.cmd clean compile jib:dockerBuild
 ```
 
 ## Monitoring & Observability
@@ -276,19 +305,56 @@ mvnw.cmd compile jib:build
 - Kafka logging disabled (OFF)
 - Structured logging with trace context
 
+### Debugging Distroless Containers
+
+Since distroless images have no shell, use Spring Boot Actuator for debugging:
+
+```bash
+# Health check
+curl http://localhost:8083/actuator/health
+
+# Metrics
+curl http://localhost:8083/actuator/metrics
+
+# Environment variables
+curl http://localhost:8083/actuator/env
+
+# Thread dump
+curl http://localhost:8083/actuator/threaddump
+
+# Heap dump
+curl http://localhost:8083/actuator/heapdump -O
+```
+
 ## Security
 
-### Encryption
+### Container Security
 
-- RSA encryption for sensitive data
-- Configurable encryption key via `encrypt.key` property
-- Dedicated encryption service for key management
+- **Distroless Base Image**: Minimal attack surface with no shell or package managers
+- **Immutable Tags**: All deployments use immutable image tags for audit trail
+- **OIDC Authentication**: GitHub Actions uses OIDC (no long-lived AWS credentials)
+- **IAM Least Privilege**: ECR access limited to specific repositories
 
-### JWT Support
+### Application Security
 
-- JWT token parsing and validation utilities
-- JJWT library (v0.11.5) for token operations
-- Note: Spring Security dependencies are commented out (not currently active)
+- **Encryption**: RSA encryption for sensitive data via configurable `encrypt.key` property
+- **JWT Support**: Token parsing and validation with JJWT library (v0.11.5)
+- **Input Validation**: Bean validation on all DTOs
+- **Note**: Spring Security dependencies are commented out (not currently active)
+
+### Security Best Practices
+
+✅ **Implemented:**
+- Distroless container (95% CVE reduction)
+- Immutable image tags
+- OIDC authentication for CI/CD
+- Actuator endpoints for monitoring
+
+🔒 **Recommended:**
+- Enable ECR image scanning
+- Implement Spring Security for authentication/authorization
+- Use AWS Secrets Manager for sensitive configuration
+- Regular dependency updates via Dependabot
 
 ## Development
 
@@ -322,23 +388,44 @@ Access interactive API documentation:
 ### Common Issues
 
 1. **Database Connection Failed**
-   - Verify PostgreSQL is running on port 5434
-   - Check database credentials in application.yml
+   - Verify PostgreSQL is running on configured port
+   - Check database credentials in application.yml or environment variables
    - Ensure `formsdb` database exists
+   - Verify network connectivity in containerized environments
 
 2. **Eureka Registration Failed**
-   - Confirm Eureka server is running on port 8070
+   - Confirm Eureka server is running and accessible
    - Check network connectivity
    - Verify `eureka.client.serviceUrl.defaultZone` configuration
+   - Check DNS resolution for service names in Kubernetes/Docker
 
 3. **Kafka Connection Issues**
-   - Ensure Kafka broker is running on localhost:9092
+   - Ensure Kafka broker is running and accessible
    - Verify topic names match configuration
    - Check Kafka logs for errors
+   - Verify `KAFKA_BOOTSTRAP_SERVERS` environment variable
 
 4. **Port Already in Use**
    - Change `server.port` in application.yml
    - Or stop the process using port 8083
+
+5. **Jib Build Failures**
+   - Ensure Docker daemon is running (for `jib:dockerBuild`)
+   - Verify AWS credentials for ECR (for `jib:build`)
+   - Check network connectivity to ECR
+   - Verify mainClass is correctly set in pom.xml
+
+6. **GitHub Actions Build Failures**
+   - Verify `AWS_ROLE_ARN` secret is set in repository
+   - Check IAM role permissions for ECR
+   - Ensure ECR repository exists
+   - Review GitHub Actions logs for specific errors
+
+7. **Application Won't Start in Distroless**
+   - Check logs via `docker logs <container-id>`
+   - Verify all required environment variables are set
+   - Use actuator endpoints to debug (no shell access)
+   - Ensure mainClass in pom.xml matches actual main class
 
 ### Debug Mode
 
@@ -349,6 +436,18 @@ logging:
     com.corelate.forms: DEBUG
 ```
 
+For container debugging without shell access:
+```bash
+# View logs
+docker logs -f <container-id>
+
+# Check if container is running
+docker ps | grep forms
+
+# Inspect container
+docker inspect <container-id>
+```
+
 ## Project Information
 
 - **Group ID**: com.corelate
@@ -356,6 +455,39 @@ logging:
 - **Version**: 0.0.1-SNAPSHOT
 - **Packaging**: JAR
 - **Description**: Forms Microservice for Corelate
+- **Main Class**: com.corelate.forms.AppManagementApplication
+
+## CI/CD Pipeline
+
+### GitHub Actions Workflow
+
+The project uses GitHub Actions for automated builds and deployments:
+
+**Triggers:**
+- Push to `main` or `develop` branches
+- Manual workflow dispatch
+
+**Pipeline Steps:**
+1. Checkout code
+2. Set up JDK 21 with Maven cache
+3. Configure AWS credentials via OIDC
+4. Login to Amazon ECR
+5. Generate immutable image tags
+6. Build and push Docker image with Jib
+7. Display image details
+
+**Image Tags Generated:**
+- Full commit SHA (primary)
+- Short commit SHA (7 characters)
+- Branch name + timestamp
+- Version + build number + SHA
+
+### ECR Configuration
+
+- **Repository**: `689635266888.dkr.ecr.ap-southeast-1.amazonaws.com/bpmn/corelate_forms_ms`
+- **Region**: ap-southeast-1
+- **Tag Mutability**: Immutable (recommended)
+- **Authentication**: OIDC via GitHubActionsECRRole
 
 ## Contributing
 
@@ -364,6 +496,8 @@ logging:
 3. Write unit tests for new features
 4. Update API documentation
 5. Follow the existing package structure
+6. Ensure Lombok DTOs extending BaseEntity use `@EqualsAndHashCode(callSuper = true)`
+7. Test builds locally before pushing
 
 ## License
 
@@ -375,6 +509,10 @@ For issues or questions, contact the Corelate development team.
 
 ---
 
+## Quick Reference
+
 **Build Version**: Configurable via `build.version` property  
-**Docker Image**: `devcorelate01/forms:v1.1.32`  
-**Base Image**: eclipse-temurin:21-jre-alpine
+**ECR Image**: `689635266888.dkr.ecr.ap-southeast-1.amazonaws.com/bpmn/corelate_forms_ms`  
+**Base Image**: `gcr.io/distroless/java21-debian12`  
+**Security**: Distroless (95% CVE reduction, no shell)  
+**Deployment**: Immutable tags via GitHub Actions

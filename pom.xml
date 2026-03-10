@@ -29,6 +29,11 @@
 			<version>2.5.0</version>
 		</dependency>
 		<dependency>
+			<groupId>com.google.code.findbugs</groupId>
+			<artifactId>jsr305</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+		<dependency>
 			<groupId>io.opentelemetry.javaagent</groupId>
 			<artifactId>opentelemetry-javaagent</artifactId>
 			<version>${otelVersion}</version>
@@ -150,14 +155,23 @@
 				<version>${jib-maven-plugin.version}</version>
 				<configuration>
 					<from>
-						<image>eclipse-temurin:21-jre</image>
+						<!-- Distroless: Minimal attack surface, no shell, production-ready -->
+						<image>gcr.io/distroless/java21-debian12</image>
 					</from>
 					<to>
-						<image>devcorelate01/${project.artifactId}:v1.1.32</image>
+						<image>689635266888.dkr.ecr.ap-southeast-1.amazonaws.com/bpmn/corelate_forms_ms</image>
+						<tags>
+							<tag>latest</tag>
+							<tag>${project.version}</tag>
+						</tags>
 					</to>
+					<container>
+						<mainClass>com.corelate.forms.AppManagementApplication</mainClass>
+					</container>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
 
 </project>
+
