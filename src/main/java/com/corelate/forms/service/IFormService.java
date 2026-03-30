@@ -37,6 +37,8 @@ public interface IFormService {
     boolean deleteForm(String FormId);
 
     boolean deleteFormSchemas(String FormId);
+
+    List<String> deleteAllForms();
     /**
      * @param formId
      * @return

@@ -219,4 +219,20 @@ public class FormController {
         iFormService.deleteFormSchemas(formId);
         return "Schemas for " + formId + " deleted successfully.";
     }
+
+    @DeleteMapping("/delete/{formId}")
+    public String deleteForm(@PathVariable String formId) {
+        iFormService.deleteForm(formId);
+        dynamicTableService.deleteTableById(formId);
+        return "Form " + formId + " deleted successfully.";
+    }
+
+    @DeleteMapping("/delete/all")
+    public String deleteAllForms() {
+        List<String> deletedFormIds = iFormService.deleteAllForms();
+        for (String formId : deletedFormIds) {
+            dynamicTableService.deleteTableById(formId);
+        }
+        return "All forms deleted successfully.";
+    }
 }
