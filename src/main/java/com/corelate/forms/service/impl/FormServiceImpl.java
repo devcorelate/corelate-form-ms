@@ -22,6 +22,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -131,10 +132,14 @@ public class FormServiceImpl implements IFormService {
     }
 
     @Override
+    @Transactional
     public boolean deleteFormSchemas(String FormId) {
 
         List<FormSchema> existingSchemas = formSchemaRepository.findAllByFormId(FormId);
         if (!existingSchemas.isEmpty()) {
+            for (FormSchema formSchema : existingSchemas) {
+                schemaComponentRepository.deleteBySchemaId(formSchema.getSchemaId());
+            }
             formSchemaRepository.deleteAll(existingSchemas);
         }
 
@@ -142,8 +147,30 @@ public class FormServiceImpl implements IFormService {
     }
 
     @Override
+    @Transactional
     public boolean deleteForm(String FormId) {
-        return false;
+        Form form = formRepository.findByFormId(FormId).orElseThrow(
+                () -> new ResourceNotFoundException("Form", "Id", FormId)
+        );
+
+        deleteFormSchemas(FormId);
+        formRepository.delete(form);
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public List<String> deleteAllForms() {
+        List<Form> forms = formRepository.findAll();
+        List<String> deletedFormIds = new ArrayList<>();
+
+        for (Form form : forms) {
+            deletedFormIds.add(form.getFormId());
+            deleteFormSchemas(form.getFormId());
+        }
+
+        formRepository.deleteAll(forms);
+        return deletedFormIds;
     }
 
     @Override
