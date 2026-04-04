@@ -137,6 +137,58 @@ public class FormController {
         return ResponseEntity.status(HttpStatus.OK).body(rFormDto);
     }
 
+    @Operation(
+            summary = "Fetch Form Templates Details REST API",
+            description = "REST API to fetch all Form Templates"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/fetch/{formId}")
+    public ResponseEntity<FormDto> fetchFormById(@PathVariable String formId) {
+        logger.debug("fetchForm by Id method start");
+        FormDto rFormDto = iFormService.fetchForm(formId);
+        logger.debug("fetchForm by Id method end");
+        return ResponseEntity.status(HttpStatus.OK).body(rFormDto);
+    }
+
+    @Operation(
+            summary = "Fetch Form Templates Details REST API",
+            description = "REST API to fetch all Form Templates"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/fetch/label/{elementId}")
+    public ResponseEntity<ElementLabelResponseDto> fetchLabelByElement(@PathVariable String elementId) {
+        logger.debug("fetchLabel by Id method start");
+        ElementLabelResponseDto elementLabelResponseDto = iFormService.fetchElementById(elementId);
+        logger.debug("fetchLabel by Id method end");
+        return ResponseEntity.status(HttpStatus.OK).body(elementLabelResponseDto);
+    }
+
 
     @Operation(
             summary = "Fetch Form Templates Selections REST API",

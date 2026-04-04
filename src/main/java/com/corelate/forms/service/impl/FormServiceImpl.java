@@ -1,5 +1,6 @@
 package com.corelate.forms.service.impl;
 
+import com.corelate.forms.dto.ElementLabelResponseDto;
 import com.corelate.forms.dto.FormDto;
 import com.corelate.forms.dto.FormSchemaDto;
 import com.corelate.forms.dto.FormSelectionDto;
@@ -208,5 +209,17 @@ public class FormServiceImpl implements IFormService {
         }
 
         return formDtos;
+    }
+
+    @Override
+    public ElementLabelResponseDto fetchElementById(String elementId) {
+        SchemaComponent schemaComponent = schemaComponentRepository.findByKey(elementId).orElseThrow(
+                ()-> new ResourceNotFoundException("ElementId", "Id", elementId)
+        );
+        ElementLabelResponseDto elementLabelResponseDto = new ElementLabelResponseDto();
+        elementLabelResponseDto.setLabel(schemaComponent.getLabel());
+        elementLabelResponseDto.setElementId(elementId);
+
+        return elementLabelResponseDto;
     }
 }

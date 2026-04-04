@@ -1,4 +1,5 @@
 package com.corelate.forms.service;
+import com.corelate.forms.dto.ElementLabelResponseDto;
 import com.corelate.forms.dto.FormDto;
 import com.corelate.forms.dto.FormSelectionDto;
 
@@ -52,4 +53,6 @@ public interface IFormService {
     List<Object> fetchListByForm(String formId);
 
     List<FormSelectionDto> fetchSelections();
+
+    ElementLabelResponseDto fetchElementById(String elementId);
 }
