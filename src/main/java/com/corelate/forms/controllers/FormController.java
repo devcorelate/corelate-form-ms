@@ -137,6 +137,58 @@ public class FormController {
         return ResponseEntity.status(HttpStatus.OK).body(rFormDto);
     }
 
+    @Operation(
+            summary = "Fetch Form Templates Details REST API",
+            description = "REST API to fetch all Form Templates"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/fetch/{formId}")
+    public ResponseEntity<FormDto> fetchFormById(@PathVariable String formId) {
+        logger.debug("fetchForm by Id method start");
+        FormDto rFormDto = iFormService.fetchForm(formId);
+        logger.debug("fetchForm by Id method end");
+        return ResponseEntity.status(HttpStatus.OK).body(rFormDto);
+    }
+
+    @Operation(
+            summary = "Fetch Form Templates Details REST API",
+            description = "REST API to fetch all Form Templates"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/fetch/label/{elementId}")
+    public ResponseEntity<ElementLabelResponseDto> fetchLabelByElement(@PathVariable String elementId) {
+        logger.debug("fetchLabel by Id method start");
+        ElementLabelResponseDto elementLabelResponseDto = iFormService.fetchElementById(elementId);
+        logger.debug("fetchLabel by Id method end");
+        return ResponseEntity.status(HttpStatus.OK).body(elementLabelResponseDto);
+    }
+
 
     @Operation(
             summary = "Fetch Form Templates Selections REST API",
@@ -218,5 +270,21 @@ public class FormController {
     public String deleteFormSchemas(@PathVariable String formId) {
         iFormService.deleteFormSchemas(formId);
         return "Schemas for " + formId + " deleted successfully.";
+    }
+
+    @DeleteMapping("/delete/{formId}")
+    public String deleteForm(@PathVariable String formId) {
+        iFormService.deleteForm(formId);
+        dynamicTableService.deleteTableById(formId);
+        return "Form " + formId + " deleted successfully.";
+    }
+
+    @DeleteMapping("/delete/all")
+    public String deleteAllForms() {
+        List<String> deletedFormIds = iFormService.deleteAllForms();
+        for (String formId : deletedFormIds) {
+            dynamicTableService.deleteTableById(formId);
+        }
+        return "All forms deleted successfully.";
     }
 }
