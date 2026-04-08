@@ -147,7 +147,7 @@
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
-	<build>
+	<!-- <build>
 		<plugins>
 			<plugin>
 				<groupId>com.google.cloud.tools</groupId>
@@ -155,7 +155,7 @@
 				<version>${jib-maven-plugin.version}</version>
 				<configuration>
 					<from>
-						<!-- Distroless: Minimal attack surface, no shell, production-ready -->
+
 						<image>gcr.io/distroless/java21-debian12</image>
 					</from>
 					<to>
@@ -171,7 +171,23 @@
 				</configuration>
 			</plugin>
 		</plugins>
+	</build>-->
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.google.cloud.tools</groupId>
+				<artifactId>jib-maven-plugin</artifactId>
+				<version>${jib-maven-plugin.version}</version>
+				<configuration>
+					<from>
+						<image>eclipse-temurin:21-jre</image>
+					</from>
+					<to>
+						<image>devcorelate01/${project.artifactId}:v1.1.32</image>
+					</to>
+				</configuration>
+			</plugin>
+		</plugins>
 	</build>
-
 </project>
 

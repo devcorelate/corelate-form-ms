@@ -34,7 +34,7 @@ public class ApiController {
 
     private static final Logger logger = LoggerFactory.getLogger(ApiController.class);
 
-    @Value("${build.version}")
+    @Value("${build.version:1.1.33}")
     private String buildVersion;
 
     @Autowired
