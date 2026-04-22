@@ -164,6 +164,32 @@ public class FormController {
     }
 
     @Operation(
+            summary = "Fetch Form Schema by Form ID REST API",
+            description = "REST API to fetch form schema details by formId"
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "HTTP Status OK"
+            ),
+            @ApiResponse(
+                    responseCode = "500",
+                    description = "HTTP Status Internal Server Error",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorResponseDto.class)
+                    )
+            )
+    }
+    )
+    @GetMapping("/fetch/schema/{formId}")
+    public ResponseEntity<FormSchemaDto> fetchFormSchemaByFormId(@PathVariable String formId) {
+        logger.debug("fetchFormSchemaByFormId method start");
+        FormSchemaDto formSchemaDto = iFormService.fetchFormSchemaByFormId(formId);
+        logger.debug("fetchFormSchemaByFormId method end");
+        return ResponseEntity.status(HttpStatus.OK).body(formSchemaDto);
+    }
+
+    @Operation(
             summary = "Fetch Form Templates Details REST API",
             description = "REST API to fetch all Form Templates"
     )

@@ -222,4 +222,17 @@ public class FormServiceImpl implements IFormService {
 
         return elementLabelResponseDto;
     }
+
+    @Override
+    public FormSchemaDto fetchFormSchemaByFormId(String formId) {
+        FormSchema formSchema = formSchemaRepository.findByFormId(formId).orElseThrow(
+                () -> new ResourceNotFoundException("FormSchema", "formId", formId)
+        );
+
+        Form form = formRepository.findByFormId(formId).orElseThrow(
+                () -> new ResourceNotFoundException("Form", "Id", formId)
+        );
+
+        return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository).getFormSchemaDto();
+    }
 }
