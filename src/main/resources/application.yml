@@ -6,8 +6,8 @@ spring:
 #  profiles:
 #    active: "prod"
   datasource:
-   # url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:formsdb}
-    url: jdbc:postgresql://localhost:5434/formsdb
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5434}/${DB_NAME:formsdb}
+   # url: jdbc:postgresql://localhost:5434/formsdb
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:password}
   jpa:
@@ -83,7 +83,7 @@ eureka:
     fetchRegistry: true
     registerWithEureka: true
     serviceUrl:
-      defaultZone: http://${EUREKA_HOST:eureka-service}:${EUREKA_PORT:8070}/eureka/
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8070}/eureka/
 
 info:
   app:
