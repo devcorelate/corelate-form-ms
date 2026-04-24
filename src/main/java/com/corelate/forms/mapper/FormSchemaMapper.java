@@ -33,10 +33,11 @@ public class FormSchemaMapper {
         formSchema.setType(formDto.getFormSchemaDto().getType());
 
         for (FormSchemaDto.Component component : formDto.getFormSchemaDto().getComponents()) {
+            String componentIdentifier = Optional.ofNullable(component.getId()).orElse(component.getKey());
 
-            SchemaComponent mComponent = schemaComponentRepository.findByComponentId(component.getId())
+            SchemaComponent mComponent = schemaComponentRepository.findByComponentId(componentIdentifier)
                     .orElseGet(SchemaComponent::new);
-            mComponent.setComponentId(component.getId());
+            mComponent.setComponentId(componentIdentifier);
             mComponent.setSchemaId(formDto.getFormSchemaDto().getId());
             mComponent.setLabel(component.getLabel());
             mComponent.setType(component.getType());
@@ -50,17 +51,17 @@ public class FormSchemaMapper {
 
             if (component.getDataSourceConfig() != null) {
                 DataSourceConfig dataSourceConfig = dataSourceConfigRepository
-                        .findByFormIdAndComponentId(formDto.getFormId(), component.getId())
+                        .findByFormIdAndComponentId(formDto.getFormId(), componentIdentifier)
                         .orElseGet(DataSourceConfig::new);
 
                 dataSourceConfig.setId(Optional.ofNullable(dataSourceConfig.getId()).orElse(UUID.randomUUID().toString()));
                 dataSourceConfig.setFormId(formDto.getFormId());
                 dataSourceConfig.setSchemaId(formDto.getFormSchemaDto().getId());
-                dataSourceConfig.setComponentId(component.getId());
-                dataSourceConfig.setDatasourceName(component.getDataSourceConfig().getDatasourceName());
+                dataSourceConfig.setComponentId(componentIdentifier);
+                dataSourceConfig.setDataSourceName(component.getDataSourceConfig().getDataSourceName());
                 dataSourceConfig.setWorkflowId(component.getDataSourceConfig().getWorkflowId());
                 dataSourceConfig.setWorkflowName(component.getDataSourceConfig().getWorkflowName());
-                dataSourceConfig.setDatasourceLabel(component.getDataSourceConfig().getDatasourceLabel());
+                dataSourceConfig.setDataSourceLabel(component.getDataSourceConfig().getDataSourceLabel());
                 dataSourceConfig.setTableName(component.getDataSourceConfig().getTable());
                 dataSourceConfig.setLabelColumn(component.getDataSourceConfig().getLabelColumn());
                 dataSourceConfig.setValueColumn(component.getDataSourceConfig().getValueColumn());
@@ -117,10 +118,10 @@ public class FormSchemaMapper {
                 DataSourceConfig dataSourceConfig = configByComponentId.get(component.getComponentId());
                 if (dataSourceConfig != null) {
                     FormSchemaDto.Component.DataSourceConfig dtoConfig = new FormSchemaDto.Component.DataSourceConfig();
-                    dtoConfig.setDatasourceName(dataSourceConfig.getDatasourceName());
+                    dtoConfig.setDataSourceName(dataSourceConfig.getDataSourceName());
                     dtoConfig.setWorkflowId(dataSourceConfig.getWorkflowId());
                     dtoConfig.setWorkflowName(dataSourceConfig.getWorkflowName());
-                    dtoConfig.setDatasourceLabel(dataSourceConfig.getDatasourceLabel());
+                    dtoConfig.setDataSourceLabel(dataSourceConfig.getDataSourceLabel());
                     dtoConfig.setTable(dataSourceConfig.getTableName());
                     dtoConfig.setLabelColumn(dataSourceConfig.getLabelColumn());
                     dtoConfig.setValueColumn(dataSourceConfig.getValueColumn());

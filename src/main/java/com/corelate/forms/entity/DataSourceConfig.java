@@ -25,13 +25,13 @@ public class DataSourceConfig {
 
     private String componentId;
 
-    private String datasourceName;
+    private String dataSourceName;
 
     private String workflowId;
 
     private String workflowName;
 
-    private String datasourceLabel;
+    private String dataSourceLabel;
 
     private String tableName;
 

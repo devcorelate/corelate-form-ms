@@ -1,5 +1,7 @@
 package com.corelate.forms.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Data;
 
 import java.util.List;
@@ -24,10 +26,14 @@ public class FormSchemaDto {
 
         @Data
         public static class DataSourceConfig {
-            private String datasourceName;
+            @JsonProperty("dataSourceName")
+            @JsonAlias({"datasourceName"})
+            private String dataSourceName;
             private String workflowId;
             private String workflowName;
-            private String datasourceLabel;
+            @JsonProperty("dataSourceLabel")
+            @JsonAlias({"datasourceLabel"})
+            private String dataSourceLabel;
             private String table;
             private String labelColumn;
             private String valueColumn;
