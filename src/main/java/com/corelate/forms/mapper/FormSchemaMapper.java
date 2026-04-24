@@ -3,21 +3,29 @@ package com.corelate.forms.mapper;
 
 import com.corelate.forms.dto.FormDto;
 import com.corelate.forms.dto.FormSchemaDto;
+import com.corelate.forms.entity.DataSourceConfig;
 import com.corelate.forms.entity.Form;
 import com.corelate.forms.entity.FormSchema;
 import com.corelate.forms.entity.SchemaComponent;
-import com.corelate.forms.repository.FormSchemaRepository;
+import com.corelate.forms.repository.DataSourceConfigRepository;
 import com.corelate.forms.repository.SchemaComponentRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class FormSchemaMapper {
 
 
 
-    public static FormSchema mapToFormSchema(FormDto formDto, FormSchema formSchema, SchemaComponentRepository schemaComponentRepository) {
+    public static FormSchema mapToFormSchema(FormDto formDto,
+                                             FormSchema formSchema,
+                                             SchemaComponentRepository schemaComponentRepository,
+                                             DataSourceConfigRepository dataSourceConfigRepository) {
 
         formSchema.setFormId(formDto.getFormId());
         formSchema.setSchemaId(formDto.getFormSchemaDto().getId());
@@ -25,10 +33,11 @@ public class FormSchemaMapper {
         formSchema.setType(formDto.getFormSchemaDto().getType());
 
         for (FormSchemaDto.Component component : formDto.getFormSchemaDto().getComponents()) {
+            String componentIdentifier = Optional.ofNullable(component.getId()).orElse(component.getKey());
 
-            SchemaComponent mComponent = schemaComponentRepository.findByComponentId(component.getId())
+            SchemaComponent mComponent = schemaComponentRepository.findByComponentId(componentIdentifier)
                     .orElseGet(SchemaComponent::new);
-            mComponent.setComponentId(component.getId());
+            mComponent.setComponentId(componentIdentifier);
             mComponent.setSchemaId(formDto.getFormSchemaDto().getId());
             mComponent.setLabel(component.getLabel());
             mComponent.setType(component.getType());
@@ -39,12 +48,35 @@ public class FormSchemaMapper {
                     .orElse(false));
             mComponent.setColumns(component.getLayout().getColumns());
             schemaComponentRepository.save(mComponent);
+
+            if (component.getDataSourceConfig() != null) {
+                DataSourceConfig dataSourceConfig = dataSourceConfigRepository
+                        .findByFormIdAndComponentId(formDto.getFormId(), componentIdentifier)
+                        .orElseGet(DataSourceConfig::new);
+
+                dataSourceConfig.setId(Optional.ofNullable(dataSourceConfig.getId()).orElse(UUID.randomUUID().toString()));
+                dataSourceConfig.setFormId(formDto.getFormId());
+                dataSourceConfig.setSchemaId(formDto.getFormSchemaDto().getId());
+                dataSourceConfig.setComponentId(componentIdentifier);
+                dataSourceConfig.setDataSourceName(component.getDataSourceConfig().getDataSourceName());
+                dataSourceConfig.setWorkflowId(component.getDataSourceConfig().getWorkflowId());
+                dataSourceConfig.setWorkflowName(component.getDataSourceConfig().getWorkflowName());
+                dataSourceConfig.setDataSourceLabel(component.getDataSourceConfig().getDataSourceLabel());
+                dataSourceConfig.setTableName(component.getDataSourceConfig().getTable());
+                dataSourceConfig.setLabelColumn(component.getDataSourceConfig().getLabelColumn());
+                dataSourceConfig.setValueColumn(component.getDataSourceConfig().getValueColumn());
+
+                dataSourceConfigRepository.save(dataSourceConfig);
+            }
         }
 
         return formSchema;
     }
 
-    public static FormDto mapToFormDtoAndSchema(Form form, FormSchema formSchema, SchemaComponentRepository schemaComponentRepository) {
+    public static FormDto mapToFormDtoAndSchema(Form form,
+                                                 FormSchema formSchema,
+                                                 SchemaComponentRepository schemaComponentRepository,
+                                                 DataSourceConfigRepository dataSourceConfigRepository) {
         FormDto formDto = new FormDto();
         formDto.setFormId(form.getFormId());
         formDto.setFormDescription(form.getFormDescription());
@@ -58,6 +90,11 @@ public class FormSchemaMapper {
             formSchemaDto.setId(formSchema.getSchemaId());
             formSchemaDto.setSchemaVersion(formSchema.getSchemaVersion());
             formSchemaDto.setType(formSchema.getType());
+
+            Map<String, DataSourceConfig> configByComponentId = dataSourceConfigRepository.findAllByFormId(form.getFormId())
+                    .stream()
+                    .collect(Collectors.toMap(DataSourceConfig::getComponentId, Function.identity(), (a, b) -> a));
+
             List<SchemaComponent> components = schemaComponentRepository.findAllBySchemaId(formSchema.getSchemaId());
             List<FormSchemaDto.Component> nComponents = new ArrayList<>();
             for (SchemaComponent component : components) {
@@ -77,6 +114,20 @@ public class FormSchemaMapper {
                 FormSchemaDto.Component.Validate isValidate = new FormSchemaDto.Component.Validate();
                 isValidate.setRequired(component.isValidated());
                 nComponent.setValidate(isValidate);
+
+                DataSourceConfig dataSourceConfig = configByComponentId.get(component.getComponentId());
+                if (dataSourceConfig != null) {
+                    FormSchemaDto.Component.DataSourceConfig dtoConfig = new FormSchemaDto.Component.DataSourceConfig();
+                    dtoConfig.setDataSourceName(dataSourceConfig.getDataSourceName());
+                    dtoConfig.setWorkflowId(dataSourceConfig.getWorkflowId());
+                    dtoConfig.setWorkflowName(dataSourceConfig.getWorkflowName());
+                    dtoConfig.setDataSourceLabel(dataSourceConfig.getDataSourceLabel());
+                    dtoConfig.setTable(dataSourceConfig.getTableName());
+                    dtoConfig.setLabelColumn(dataSourceConfig.getLabelColumn());
+                    dtoConfig.setValueColumn(dataSourceConfig.getValueColumn());
+                    nComponent.setDataSourceConfig(dtoConfig);
+                }
+
                 nComponents.add(nComponent);
             }
             formSchemaDto.setComponents(nComponents);
