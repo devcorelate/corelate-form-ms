@@ -1,6 +1,8 @@
 package com.corelate.forms.dto;
 
 import lombok.Data;
+
+import javax.sql.DataSource;
 import java.util.List;
 
 @Data
@@ -17,8 +19,20 @@ public class FormSchemaDto {
         private String key;
         private String type;
         private Validate validate;
+        private DataSourceConfig dataSourceConfig;
         private String id;
         private Layout layout;
+
+        @Data
+        public static class DataSourceConfig {
+            private String datasourceName;
+            private String workflowId;
+            private String workflowName;
+            private String datasourceLabel;
+            private String table;
+            private String labelColumn;
+            private String valueColumn;
+        }
 
         @Data
         public static class Validate {
