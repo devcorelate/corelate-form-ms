@@ -20,6 +20,7 @@ public class FormSchemaDto {
         private String key;
         private String type;
         private Validate validate;
+        @JsonAlias({"datasourceConfig"})
         private DataSourceConfig dataSourceConfig;
         private String id;
         private Layout layout;
