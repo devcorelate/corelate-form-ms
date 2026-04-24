@@ -2,7 +2,6 @@ package com.corelate.forms.dto;
 
 import lombok.Data;
 
-import javax.sql.DataSource;
 import java.util.List;
 
 @Data

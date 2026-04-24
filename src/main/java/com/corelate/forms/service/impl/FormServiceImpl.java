@@ -10,6 +10,7 @@ import com.corelate.forms.entity.SchemaComponent;
 import com.corelate.forms.exeption.ResourceNotFoundException;
 import com.corelate.forms.mapper.FormMapper;
 import com.corelate.forms.mapper.FormSchemaMapper;
+import com.corelate.forms.repository.DataSourceConfigRepository;
 import com.corelate.forms.repository.FormRepository;
 import com.corelate.forms.repository.FormSchemaRepository;
 import com.corelate.forms.repository.SchemaComponentRepository;
@@ -39,6 +40,7 @@ public class FormServiceImpl implements IFormService {
     private FormRepository formRepository;
     private FormSchemaRepository formSchemaRepository;
     private SchemaComponentRepository schemaComponentRepository;
+    private DataSourceConfigRepository dataSourceConfigRepository;
     private final StreamBridge streamBridge;
 
     @Autowired
@@ -82,7 +84,7 @@ public class FormServiceImpl implements IFormService {
         if(formSchema == null) {
             return FormMapper.mapToFormDto(form, new FormDto());
         } else {
-            return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository);
+            return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository, dataSourceConfigRepository);
         }
 
     }
@@ -97,7 +99,7 @@ public class FormServiceImpl implements IFormService {
             FormSchema formSchema = formSchemaRepository.findByFormId(form.getFormId()).orElse(null);
 
 //                FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository);
-            formDtos.add(FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository));
+            formDtos.add(FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository, dataSourceConfigRepository));
 
 
         }
@@ -120,7 +122,8 @@ public class FormServiceImpl implements IFormService {
         FormSchema formSchema = formSchemaRepository.findBySchemaId(formDto.getFormSchemaDto().getId())
                 .orElseGet(FormSchema::new);
 
-        FormSchemaMapper.mapToFormSchema(formDto, formSchema, schemaComponentRepository);
+        dataSourceConfigRepository.deleteByFormId(formDto.getFormId());
+        FormSchemaMapper.mapToFormSchema(formDto, formSchema, schemaComponentRepository, dataSourceConfigRepository);
         formSchemaRepository.save(formSchema);
 
         // Update form metadata
@@ -141,6 +144,7 @@ public class FormServiceImpl implements IFormService {
             for (FormSchema formSchema : existingSchemas) {
                 schemaComponentRepository.deleteBySchemaId(formSchema.getSchemaId());
             }
+            dataSourceConfigRepository.deleteByFormId(FormId);
             formSchemaRepository.deleteAll(existingSchemas);
         }
 
@@ -233,6 +237,6 @@ public class FormServiceImpl implements IFormService {
                 () -> new ResourceNotFoundException("Form", "Id", formId)
         );
 
-        return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository).getFormSchemaDto();
+        return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository, dataSourceConfigRepository).getFormSchemaDto();
     }
 }
