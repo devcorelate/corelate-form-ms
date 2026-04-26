@@ -30,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -49,15 +50,60 @@ public class FormServiceImpl implements IFormService {
     @Override
     public FormDto createForm(FormDto formDto) {
         formDto.setFormId(generateRandomId());
+        applySampleSchema(formDto);
         Form form = FormMapper.mapToForm(formDto, new Form());
 
         form.setCreatedAt(LocalDateTime.now());
         form.setCreatedBy(formDto.getCreatedBy());
         form.setCreatedByEmail(formDto.getCreatedByEmail());
         formRepository.save(form);
+
+        FormSchema formSchema = FormSchemaMapper.mapToFormSchema(
+                formDto,
+                new FormSchema(),
+                schemaComponentRepository,
+                dataSourceConfigRepository
+        );
+        formSchemaRepository.save(formSchema);
+
         FormDto updatedFormDto = FormMapper.mapToFormDto(form, new FormDto());
+        updatedFormDto.setFormSchemaDto(formDto.getFormSchemaDto());
 
         return updatedFormDto;
+    }
+
+    private void applySampleSchema(FormDto formDto) {
+        FormSchemaDto schemaDto = new FormSchemaDto();
+        schemaDto.setId(UUID.randomUUID().toString());
+        schemaDto.setType("form");
+        schemaDto.setSchemaVersion(1);
+        schemaDto.setComponents(buildSampleComponents());
+        formDto.setFormSchemaDto(schemaDto);
+    }
+
+    private List<FormSchemaDto.Component> buildSampleComponents() {
+        List<FormSchemaDto.Component> components = new ArrayList<>();
+        components.add(buildSampleTextComponent("First Name", "firstName", "1", "6"));
+        components.add(buildSampleTextComponent("Last Name", "lastName", "1", "6"));
+        return components;
+    }
+
+    private FormSchemaDto.Component buildSampleTextComponent(String label, String key, String row, String columns) {
+        FormSchemaDto.Component component = new FormSchemaDto.Component();
+        component.setId(UUID.randomUUID().toString());
+        component.setLabel(label);
+        component.setKey(key);
+        component.setType("textfield");
+
+        FormSchemaDto.Component.Layout layout = new FormSchemaDto.Component.Layout();
+        layout.setRow(row);
+        layout.setColumns(columns);
+        component.setLayout(layout);
+
+        FormSchemaDto.Component.Validate validate = new FormSchemaDto.Component.Validate();
+        validate.setRequired(false);
+        component.setValidate(validate);
+        return component;
     }
 
     public static String generateRandomId() {
