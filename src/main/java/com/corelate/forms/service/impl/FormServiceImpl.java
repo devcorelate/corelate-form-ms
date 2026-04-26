@@ -73,27 +73,30 @@ public class FormServiceImpl implements IFormService {
     }
 
     private void applySampleSchema(FormDto formDto) {
+        String rowId = generatePrefixedId("Row_");
         FormSchemaDto schemaDto = new FormSchemaDto();
-        schemaDto.setId(UUID.randomUUID().toString());
-        schemaDto.setType("form");
-        schemaDto.setSchemaVersion(1);
-        schemaDto.setComponents(buildSampleComponents());
+        schemaDto.setId(generatePrefixedId("Form_"));
+        schemaDto.setType("default");
+        schemaDto.setSchemaVersion(17);
+        schemaDto.setTemplateId(null);
+        schemaDto.setComponents(buildSampleComponents(rowId));
         formDto.setFormSchemaDto(schemaDto);
     }
 
-    private List<FormSchemaDto.Component> buildSampleComponents() {
+    private List<FormSchemaDto.Component> buildSampleComponents(String rowId) {
         List<FormSchemaDto.Component> components = new ArrayList<>();
-        components.add(buildSampleTextComponent("First Name", "firstName", "1", "6"));
-        components.add(buildSampleTextComponent("Last Name", "lastName", "1", "6"));
+        components.add(buildSampleTextComponent("Firstname", generatePrefixedId("textfield_"), generatePrefixedId("Field_"), rowId, "7"));
+        components.add(buildSampleTextComponent("Lastname", generatePrefixedId("textfield_"), generatePrefixedId("Field_"), rowId, "9"));
         return components;
     }
 
-    private FormSchemaDto.Component buildSampleTextComponent(String label, String key, String row, String columns) {
+    private FormSchemaDto.Component buildSampleTextComponent(String label, String key, String componentId, String row, String columns) {
         FormSchemaDto.Component component = new FormSchemaDto.Component();
-        component.setId(UUID.randomUUID().toString());
+        component.setId(componentId);
         component.setLabel(label);
         component.setKey(key);
         component.setType("textfield");
+        component.setDataSourceConfig(null);
 
         FormSchemaDto.Component.Layout layout = new FormSchemaDto.Component.Layout();
         layout.setRow(row);
@@ -104,6 +107,18 @@ public class FormServiceImpl implements IFormService {
         validate.setRequired(false);
         component.setValidate(validate);
         return component;
+    }
+
+    private String generatePrefixedId(String prefix) {
+        String characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder id = new StringBuilder(prefix);
+        Random random = new Random();
+
+        for (int i = 0; i < 7; i++) {
+            int index = random.nextInt(characters.length());
+            id.append(characters.charAt(index));
+        }
+        return id.toString();
     }
 
     public static String generateRandomId() {
