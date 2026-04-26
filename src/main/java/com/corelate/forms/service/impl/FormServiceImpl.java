@@ -49,15 +49,75 @@ public class FormServiceImpl implements IFormService {
     @Override
     public FormDto createForm(FormDto formDto) {
         formDto.setFormId(generateRandomId());
+        applySampleSchema(formDto);
         Form form = FormMapper.mapToForm(formDto, new Form());
 
         form.setCreatedAt(LocalDateTime.now());
         form.setCreatedBy(formDto.getCreatedBy());
         form.setCreatedByEmail(formDto.getCreatedByEmail());
         formRepository.save(form);
+
+        FormSchema formSchema = FormSchemaMapper.mapToFormSchema(
+                formDto,
+                new FormSchema(),
+                schemaComponentRepository,
+                dataSourceConfigRepository
+        );
+        formSchemaRepository.save(formSchema);
+
         FormDto updatedFormDto = FormMapper.mapToFormDto(form, new FormDto());
+        updatedFormDto.setFormSchemaDto(formDto.getFormSchemaDto());
 
         return updatedFormDto;
+    }
+
+    private void applySampleSchema(FormDto formDto) {
+        String rowId = generatePrefixedId("Row_");
+        FormSchemaDto schemaDto = new FormSchemaDto();
+        schemaDto.setId(generatePrefixedId("Form_"));
+        schemaDto.setType("default");
+        schemaDto.setSchemaVersion(17);
+        schemaDto.setTemplateId(null);
+        schemaDto.setComponents(buildSampleComponents(rowId));
+        formDto.setFormSchemaDto(schemaDto);
+    }
+
+    private List<FormSchemaDto.Component> buildSampleComponents(String rowId) {
+        List<FormSchemaDto.Component> components = new ArrayList<>();
+        components.add(buildSampleTextComponent("Firstname", generatePrefixedId("textfield_"), generatePrefixedId("Field_"), rowId, "7"));
+        components.add(buildSampleTextComponent("Lastname", generatePrefixedId("textfield_"), generatePrefixedId("Field_"), rowId, "9"));
+        return components;
+    }
+
+    private FormSchemaDto.Component buildSampleTextComponent(String label, String key, String componentId, String row, String columns) {
+        FormSchemaDto.Component component = new FormSchemaDto.Component();
+        component.setId(componentId);
+        component.setLabel(label);
+        component.setKey(key);
+        component.setType("textfield");
+        component.setDataSourceConfig(null);
+
+        FormSchemaDto.Component.Layout layout = new FormSchemaDto.Component.Layout();
+        layout.setRow(row);
+        layout.setColumns(columns);
+        component.setLayout(layout);
+
+        FormSchemaDto.Component.Validate validate = new FormSchemaDto.Component.Validate();
+        validate.setRequired(false);
+        component.setValidate(validate);
+        return component;
+    }
+
+    private String generatePrefixedId(String prefix) {
+        String characters = "abcdefghijklmnopqrstuvwxyz0123456789";
+        StringBuilder id = new StringBuilder(prefix);
+        Random random = new Random();
+
+        for (int i = 0; i < 7; i++) {
+            int index = random.nextInt(characters.length());
+            id.append(characters.charAt(index));
+        }
+        return id.toString();
     }
 
     public static String generateRandomId() {
