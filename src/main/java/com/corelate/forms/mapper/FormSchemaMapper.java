@@ -20,7 +20,25 @@ import java.util.stream.Collectors;
 
 public class FormSchemaMapper {
 
+    private static String buildComponentKey(String componentIdentifier, String componentKey) {
+        if (componentIdentifier == null || componentIdentifier.isBlank()) {
+            return componentKey;
+        }
 
+        if (componentKey == null || componentKey.isBlank()) {
+            return componentIdentifier;
+        }
+
+        String prefix = componentIdentifier + "-";
+
+        // Remove all repeated componentIdentifier prefixes
+        while (componentKey.startsWith(prefix)) {
+            componentKey = componentKey.substring(prefix.length());
+        }
+
+        // Add exactly one componentIdentifier prefix
+        return prefix + componentKey;
+    }
 
     public static FormSchema mapToFormSchema(FormDto formDto,
                                              FormSchema formSchema,
@@ -34,7 +52,9 @@ public class FormSchemaMapper {
 
         for (FormSchemaDto.Component component : formDto.getFormSchemaDto().getComponents()) {
             String componentIdentifier = Optional.ofNullable(component.getId()).orElse(component.getKey());
+            String componentKey = component.getKey();
 
+            String combineKey = buildComponentKey(componentIdentifier, componentKey);
             SchemaComponent mComponent = schemaComponentRepository.findByComponentId(componentIdentifier)
                     .orElseGet(SchemaComponent::new);
             mComponent.setComponentId(componentIdentifier);
@@ -42,7 +62,7 @@ public class FormSchemaMapper {
             mComponent.setLabel(component.getLabel());
             mComponent.setType(component.getType());
             mComponent.setRow(component.getLayout().getRow());
-            mComponent.setKey(component.getKey());
+            mComponent.setKey(combineKey);
             mComponent.setValidated(Optional.ofNullable(component.getValidate())
                     .map(FormSchemaDto.Component.Validate::isRequired)
                     .orElse(false));

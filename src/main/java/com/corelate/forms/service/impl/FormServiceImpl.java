@@ -94,7 +94,7 @@ public class FormServiceImpl implements IFormService {
         FormSchemaDto.Component component = new FormSchemaDto.Component();
         component.setId(componentId);
         component.setLabel(label);
-        component.setKey(key);
+        component.setKey(generatePrefixedId(key));
         component.setType("textfield");
         component.setDataSourceConfig(null);
 
