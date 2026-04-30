@@ -1,6 +1,7 @@
 package com.corelate.forms.service;
 import com.corelate.forms.dto.ElementLabelResponseDto;
 import com.corelate.forms.dto.FormDto;
+import com.corelate.forms.dto.FormFieldLabelsResponseDto;
 import com.corelate.forms.dto.FormSchemaDto;
 import com.corelate.forms.dto.FormSelectionDto;
 
@@ -58,4 +59,6 @@ public interface IFormService {
     ElementLabelResponseDto fetchElementById(String elementId);
 
     FormSchemaDto fetchFormSchemaByFormId(String formId);
+
+    List<FormFieldLabelsResponseDto> fetchFieldLabelsBatch(List<String> formIds);
 }
