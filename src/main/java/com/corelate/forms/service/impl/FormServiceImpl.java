@@ -2,6 +2,7 @@ package com.corelate.forms.service.impl;
 
 import com.corelate.forms.dto.ElementLabelResponseDto;
 import com.corelate.forms.dto.FormDto;
+import com.corelate.forms.dto.FormFieldLabelsResponseDto;
 import com.corelate.forms.dto.FormSchemaDto;
 import com.corelate.forms.dto.FormSelectionDto;
 import com.corelate.forms.entity.Form;
@@ -299,5 +300,37 @@ public class FormServiceImpl implements IFormService {
         );
 
         return FormSchemaMapper.mapToFormDtoAndSchema(form, formSchema, schemaComponentRepository, dataSourceConfigRepository).getFormSchemaDto();
+    }
+
+    @Override
+    public List<FormFieldLabelsResponseDto> fetchFieldLabelsBatch(List<String> formIds) {
+        List<FormFieldLabelsResponseDto> responses = new ArrayList<>();
+
+        for (String formId : formIds) {
+            FormSchemaDto schemaDto = fetchFormSchemaByFormId(formId);
+            List<FormFieldLabelsResponseDto.FieldLabelDto> labels = new ArrayList<>();
+            extractLabels(schemaDto.getComponents(), labels);
+            responses.add(new FormFieldLabelsResponseDto(formId, labels));
+        }
+
+        return responses;
+    }
+
+    private void extractLabels(List<FormSchemaDto.Component> components, List<FormFieldLabelsResponseDto.FieldLabelDto> labels) {
+        if (components == null || components.isEmpty()) {
+            return;
+        }
+
+        for (FormSchemaDto.Component component : components) {
+            String label = component.getLabel();
+            if (label == null || label.isBlank()) {
+                label = component.getKey();
+            }
+            String key = component.getKey();
+            if (label != null && !label.isBlank() && key != null && !key.isBlank()) {
+                labels.add(new FormFieldLabelsResponseDto.FieldLabelDto(key, label));
+            }
+            extractLabels(component.getComponents(), labels);
+        }
     }
 }

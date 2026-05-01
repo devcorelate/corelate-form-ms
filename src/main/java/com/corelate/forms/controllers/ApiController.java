@@ -1,6 +1,9 @@
 package com.corelate.forms.controllers;
 
+import com.corelate.forms.dto.BatchFieldLabelsRequestDto;
 import com.corelate.forms.dto.ErrorResponseDto;
+import com.corelate.forms.dto.FormFieldLabelsResponseDto;
+import com.corelate.forms.service.IFormService;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -39,6 +42,9 @@ public class ApiController {
 
     @Autowired
     private Environment environment;
+
+    @Autowired
+    private IFormService iFormService;
 
     @Operation(
             summary = "Get Build information",
@@ -97,6 +103,13 @@ public class ApiController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(environment.getProperty("JAVA_HOME"));
+    }
+
+    @PostMapping("/forms/field-labels/batch")
+    public ResponseEntity<java.util.List<FormFieldLabelsResponseDto>> fetchFieldLabelsBatch(
+            @RequestBody BatchFieldLabelsRequestDto requestDto
+    ) {
+        return ResponseEntity.status(HttpStatus.OK).body(iFormService.fetchFieldLabelsBatch(requestDto.getFormIds()));
     }
 
 
