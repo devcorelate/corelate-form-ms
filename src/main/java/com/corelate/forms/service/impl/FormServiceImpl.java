@@ -308,7 +308,7 @@ public class FormServiceImpl implements IFormService {
 
         for (String formId : formIds) {
             FormSchemaDto schemaDto = fetchFormSchemaByFormId(formId);
-            List<String> labels = new ArrayList<>();
+            List<FormFieldLabelsResponseDto.FieldLabelDto> labels = new ArrayList<>();
             extractLabels(schemaDto.getComponents(), labels);
             responses.add(new FormFieldLabelsResponseDto(formId, labels));
         }
@@ -316,7 +316,7 @@ public class FormServiceImpl implements IFormService {
         return responses;
     }
 
-    private void extractLabels(List<FormSchemaDto.Component> components, List<String> labels) {
+    private void extractLabels(List<FormSchemaDto.Component> components, List<FormFieldLabelsResponseDto.FieldLabelDto> labels) {
         if (components == null || components.isEmpty()) {
             return;
         }
@@ -326,8 +326,9 @@ public class FormServiceImpl implements IFormService {
             if (label == null || label.isBlank()) {
                 label = component.getKey();
             }
-            if (label != null && !label.isBlank()) {
-                labels.add(label);
+            String key = component.getKey();
+            if (label != null && !label.isBlank() && key != null && !key.isBlank()) {
+                labels.add(new FormFieldLabelsResponseDto.FieldLabelDto(key, label));
             }
             extractLabels(component.getComponents(), labels);
         }
