@@ -21,7 +21,6 @@ public interface SchemaComponentRepository extends JpaRepository<SchemaComponent
      */
     Optional<SchemaComponent> findByKey(String key);
 
-    List<SchemaComponent> findAllByKey(String key);
 
     @Transactional
     @Modifying
