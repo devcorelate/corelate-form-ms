@@ -215,6 +215,16 @@ public class FormController {
         return ResponseEntity.status(HttpStatus.OK).body(elementLabelResponseDto);
     }
 
+    @PostMapping("/fetch/labels")
+    public ResponseEntity<List<ElementLabelResponseDto>> fetchLabelsByElements(
+            @RequestBody BatchElementLabelsRequestDto requestDto
+    ) {
+        logger.debug("fetchLabels by Ids method start");
+        List<ElementLabelResponseDto> elementLabelResponseDtos = iFormService.fetchElementsByIds(requestDto.getElementIds());
+        logger.debug("fetchLabels by Ids method end");
+        return ResponseEntity.status(HttpStatus.OK).body(elementLabelResponseDtos);
+    }
+
 
     @Operation(
             summary = "Fetch Form Templates Selections REST API",
