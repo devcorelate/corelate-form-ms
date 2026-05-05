@@ -58,6 +58,8 @@ public interface IFormService {
 
     ElementLabelResponseDto fetchElementById(String elementId);
 
+    List<ElementLabelResponseDto> fetchElementsByIds(List<String> elementIds);
+
     FormSchemaDto fetchFormSchemaByFormId(String formId);
 
     List<FormFieldLabelsResponseDto> fetchFieldLabelsBatch(List<String> formIds);
