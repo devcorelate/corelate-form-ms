@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -49,6 +50,18 @@ public class FormSchemaMapper {
         formSchema.setSchemaId(formDto.getFormSchemaDto().getId());
         formSchema.setSchemaVersion(formDto.getFormSchemaDto().getSchemaVersion());
         formSchema.setType(formDto.getFormSchemaDto().getType());
+
+        Set<String> payloadComponentIds = formDto.getFormSchemaDto().getComponents().stream()
+                .map(component -> Optional.ofNullable(component.getId()).orElse(component.getKey()))
+                .collect(Collectors.toSet());
+
+        List<SchemaComponent> existingComponents = schemaComponentRepository.findAllBySchemaId(formDto.getFormSchemaDto().getId());
+        List<SchemaComponent> componentsToDelete = existingComponents.stream()
+                .filter(existingComponent -> !payloadComponentIds.contains(existingComponent.getComponentId()))
+                .collect(Collectors.toList());
+        if (!componentsToDelete.isEmpty()) {
+            schemaComponentRepository.deleteAll(componentsToDelete);
+        }
 
         for (FormSchemaDto.Component component : formDto.getFormSchemaDto().getComponents()) {
             String componentIdentifier = Optional.ofNullable(component.getId()).orElse(component.getKey());
