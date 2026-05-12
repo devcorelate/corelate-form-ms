@@ -21,6 +21,7 @@ public interface SchemaComponentRepository extends JpaRepository<SchemaComponent
      */
     Optional<SchemaComponent> findByKey(String key);
 
+
     @Transactional
     @Modifying
     void deleteBySchemaId(String schemaId);

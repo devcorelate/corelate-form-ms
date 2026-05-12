@@ -279,9 +279,10 @@ public class FormServiceImpl implements IFormService {
 
     @Override
     public ElementLabelResponseDto fetchElementById(String elementId) {
-        SchemaComponent schemaComponent = schemaComponentRepository.findByKey(elementId).orElseThrow(
-                ()-> new ResourceNotFoundException("ElementId", "Id", elementId)
-        );
+        SchemaComponent schemaComponent = schemaComponentRepository.findByComponentId(elementId)
+                .orElseGet(() -> schemaComponentRepository.findByKey(elementId)
+                        .orElseThrow(() -> new ResourceNotFoundException("ElementId", "Id", elementId)));
+
         return mapToElementLabelResponse(schemaComponent, elementId);
     }
 
