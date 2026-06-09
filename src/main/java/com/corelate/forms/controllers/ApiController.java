@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @Tag(
-        name = "CRUD REST APIs for Orchestrator in Corelate",
+        name = "CRUD REST APIs for Form Builder in Corelate",
         description = "CRUD REST APIs in Corelate to CREATE, UPDATE, FETCH AND DELETE orchestrator details"
 )
 @RestController

@@ -26,5 +26,10 @@ public class SchemaComponent {
 
     private String type;
 
+    private String optionSource;
+
+    @Column(columnDefinition = "TEXT")
+    private String optionValues;
+
     private boolean isValidated;
 }

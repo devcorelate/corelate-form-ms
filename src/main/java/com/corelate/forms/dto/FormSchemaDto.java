@@ -19,12 +19,20 @@ public class FormSchemaDto {
         private String label;
         private String key;
         private String type;
+        private List<OptionValue> values;
         private List<Component> components;
         private Validate validate;
-        @JsonAlias({"datasourceConfig"})
+        @JsonAlias({"datasourceConfig", "dataSource"})
         private DataSourceConfig dataSourceConfig;
+        private String optionSource;
         private String id;
         private Layout layout;
+
+        @Data
+        public static class OptionValue {
+            private String label;
+            private String value;
+        }
 
         @Data
         public static class DataSourceConfig {

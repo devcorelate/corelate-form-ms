@@ -9,6 +9,9 @@ import com.corelate.forms.entity.FormSchema;
 import com.corelate.forms.entity.SchemaComponent;
 import com.corelate.forms.repository.DataSourceConfigRepository;
 import com.corelate.forms.repository.SchemaComponentRepository;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +23,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class FormSchemaMapper {
+
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final TypeReference<List<FormSchemaDto.Component.OptionValue>> OPTION_VALUES_TYPE =
+            new TypeReference<>() {
+            };
 
     private static String buildComponentKey(String componentIdentifier, String componentKey) {
         if (componentIdentifier == null || componentIdentifier.isBlank()) {
@@ -74,6 +82,8 @@ public class FormSchemaMapper {
             mComponent.setSchemaId(formDto.getFormSchemaDto().getId());
             mComponent.setLabel(component.getLabel());
             mComponent.setType(component.getType());
+            mComponent.setOptionSource(component.getOptionSource());
+            mComponent.setOptionValues(serializeOptionValues(component.getValues()));
             mComponent.setRow(component.getLayout().getRow());
             mComponent.setKey(combineKey);
             mComponent.setValidated(Optional.ofNullable(component.getValidate())
@@ -106,6 +116,30 @@ public class FormSchemaMapper {
         return formSchema;
     }
 
+    private static String serializeOptionValues(List<FormSchemaDto.Component.OptionValue> values) {
+        if (values == null) {
+            return null;
+        }
+
+        try {
+            return OBJECT_MAPPER.writeValueAsString(values);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Unable to serialize component option values", e);
+        }
+    }
+
+    private static List<FormSchemaDto.Component.OptionValue> deserializeOptionValues(String values) {
+        if (values == null || values.isBlank()) {
+            return null;
+        }
+
+        try {
+            return OBJECT_MAPPER.readValue(values, OPTION_VALUES_TYPE);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Unable to deserialize component option values", e);
+        }
+    }
+
     public static FormDto mapToFormDtoAndSchema(Form form,
                                                  FormSchema formSchema,
                                                  SchemaComponentRepository schemaComponentRepository,
@@ -136,6 +170,8 @@ public class FormSchemaMapper {
                 nComponent.setLabel(component.getLabel());
                 nComponent.setKey(component.getKey());
                 nComponent.setType(component.getType());
+                nComponent.setOptionSource(component.getOptionSource());
+                nComponent.setValues(deserializeOptionValues(component.getOptionValues()));
 
                 FormSchemaDto.Component.Layout layout = new FormSchemaDto.Component.Layout();
 
